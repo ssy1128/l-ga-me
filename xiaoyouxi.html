@@ -69,7 +69,6 @@
       background: #388e3c;
     }
 
-    /* 倒计时 */
     .count-down {
       font-size: 50px;
       color: #d32f2f;
@@ -78,7 +77,6 @@
       display: none;
     }
 
-    /* 游戏区域 */
     .game-area {
       display: none;
       margin: 20px 0;
@@ -91,7 +89,6 @@
       margin: 10px 0;
     }
 
-    /* 卡片网格 */
     .card-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -147,7 +144,6 @@
       background-position: center;
     }
 
-    /* 排行榜 */
     .rank-box {
       background: white;
       border-radius: 15px;
@@ -171,7 +167,6 @@
       line-height: 1.4;
     }
 
-    /* 结果弹窗 */
     .result {
       position: fixed;
       top: 50%;
@@ -207,7 +202,7 @@
 <body>
   <div class="container">
     <div class="title">🏢 西咸隆基 · 五一翻翻乐 🏢</div>
-    <div class="subtitle">五一劳动节快乐</div>
+    <div class="subtitle">2000人互动 · 部门头像大配对</div>
 
     <div class="tip" id="chanceTip">今日剩余次数：5 次</div>
 
@@ -244,21 +239,18 @@
   </div>
 
   <script>
-    // ====================== 【这里替换成你们部门头像】 ======================
     const DEPT_IMAGES = [
-      "https://github.com/ssy1128/l-ga-me/blob/main/%E4%BA%BA%E5%8A%9B.png?raw=true",
-      "https://github.com/ssy1128/l-ga-me/blob/main/%E5%8E%82%E5%8A%A1.png?raw=true",
-      "https://github.com/ssy1128/l-ga-me/blob/main/%E5%AE%89%E7%8E%AF.png?raw=true",
-      "https://github.com/ssy1128/l-ga-me/blob/main/%E6%8A%80%E6%9C%AF%E8%AE%BE%E5%A4%87.png?raw=true",
-      "https://github.com/ssy1128/l-ga-me/blob/main/%E7%89%A9%E4%B8%9A.png?raw=true",
-      "https://github.com/ssy1128/l-ga-me/blob/main/%E7%94%9F%E4%BA%A7.png?raw=true",
-      "https://github.com/ssy1128/l-ga-me/blob/main/%E8%B4%A2%E5%8A%A1.png?raw=true",
-      "https://github.com/ssy1128/l-ga-me/blob/main/%E8%B4%A8%E9%87%8F.png?raw=true
-"
+      "1.png",
+      "2.png",
+      "3.png",
+      "4.png",
+      "5.png",
+      "6.png",
+      "7.png",
+      "8.png"
     ];
-    // ======================================================================
 
-    const MAX_CHANCES = 5; // 每天5次机会
+    const MAX_CHANCES = 5;
     let score = 0;
     let gameTime = 15;
     let timer = null;
@@ -270,7 +262,6 @@
 
     let rankList = JSON.parse(localStorage.getItem("longiRank2025")) || [];
 
-    // 读取今日次数
     function getTodayKey() {
       const d = new Date();
       return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
@@ -293,10 +284,8 @@
       document.getElementById("chanceTip").innerText = `今日剩余次数：${left} 次`;
     }
 
-    // 页面加载时显示次数
     window.onload = updateChanceTip;
 
-    // 开始游戏
     function startGame() {
       jobNum = document.getElementById("jobNum").value.trim();
       userName = document.getElementById("userName").value.trim();
@@ -329,7 +318,6 @@
       }, 1000);
     }
 
-    // 初始化卡片
     function initCards() {
       let pairs = [...DEPT_IMAGES, ...DEPT_IMAGES];
       pairs.sort(() => Math.random() - 0.5);
@@ -352,7 +340,6 @@
       });
     }
 
-    // 翻牌
     function flipCard(id) {
       if (!gameRunning || lockBoard) return;
       const card = cards.find(c => c.id === id);
@@ -384,7 +371,6 @@
       }
     }
 
-    // 游戏运行
     function runGame() {
       score = 0;
       gameTime = 15;
@@ -405,13 +391,11 @@
       }, 1000);
     }
 
-    // 结束
     function endGame() {
       clearInterval(timer);
       gameRunning = false;
       document.getElementById("game").style.display = "none";
 
-      // 记录次数
       addUserChance();
       updateChanceTip();
 
@@ -444,7 +428,6 @@
       return "💤 继续加油";
     }
 
-    // 排行榜
     function showRank() {
       const list = document.getElementById("rankList");
       if (rankList.length === 0) {
