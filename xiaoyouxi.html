@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>西咸隆基 · 五一翻翻乐</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Microsoft YaHei", sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background: linear-gradient(to bottom, #e3f2fd, #bbdefb);
+      min-height: 100vh;
+      padding-bottom: 40px;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .title {
+      font-size: 26px;
+      color: #1976d2;
+      margin: 15px 0;
+      font-weight: bold;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 12px 15px;
+      width: 75%;
+      border: 2px solid #1976d2;
+      border-radius: 30px;
+      outline: none;
+      text-align: center;
+      font-size: 16px;
+      margin: 8px 0;
+    }
+
+    .btn {
+      background: #1976d2;
+      color: white;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 50px;
+      font-size: 17px;
+      margin: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn:active {
+      transform: scale(0.95);
+    }
+
+    .btn-green {
+      background: #388e3c;
+    }
+
+    /* 倒计时 */
+    .count-down {
+      font-size: 50px;
+      color: #d32f2f;
+      font-weight: bold;
+      margin: 30px 0;
+      display: none;
+    }
+
+    /* 游戏区域 */
+    .game-area {
+      display: none;
+      margin: 20px 0;
+    }
+
+    .info {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+      margin: 10px 0;
+    }
+
+    /* 卡片网格 */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      padding: 10px;
+      margin: 20px auto;
+      max-width: 360px;
+    }
+
+    .card {
+      width: 100%;
+      aspect-ratio: 1;
+      background: #1976d2;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 22px;
+      cursor: pointer;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.3s;
+    }
+
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card .front, .card .back {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 10px;
+      backface-visibility: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      background-size: cover;
+      background-position: center;
+    }
+
+    .card .front {
+      background: #1976d2;
+      color: white;
+      font-size: 24px;
+    }
+
+    .card .back {
+      transform: rotateY(180deg);
+      background-size: cover;
+      background-position: center;
+    }
+
+    /* 排行榜 */
+    .rank-box {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      margin: 30px 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      display: none;
+    }
+
+    .rank-title {
+      font-size: 20px;
+      color: #1976d2;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    .rank-item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+      line-height: 1.4;
+    }
+
+    /* 结果弹窗 */
+    .result {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 999;
+      min-width: 280px;
+    }
+
+    .result h2 {
+      color: #1976d2;
+      margin-bottom: 15px;
+    }
+
+    .result p {
+      font-size: 17px;
+      margin: 8px 0;
+    }
+
+    .tip {
+      color: #ff5722;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="title">🏢 西咸隆基 · 五一翻翻乐 🏢</div>
+    <div class="subtitle">五一劳动节快乐</div>
+
+    <div class="tip" id="chanceTip">今日剩余次数：5 次</div>
+
+    <input type="text" id="jobNum" placeholder="请输入工号" maxlength="10">
+    <input type="text" id="userName" placeholder="请输入姓名" maxlength="8">
+    <input type="text" id="deptName" placeholder="请输入部门" maxlength="12">
+    <br>
+    
+    <button class="btn" onclick="startGame()">开始游戏</button>
+    <button class="btn btn-green" onclick="showRank()">查看排行榜</button>
+
+    <div class="count-down" id="count">3</div>
+
+    <div class="game-area" id="game">
+      <div class="info">得分：<span id="score">0</span></div>
+      <div class="info">剩余时间：<span id="time">15</span> 秒</div>
+      <div class="card-grid" id="cardGrid"></div>
+    </div>
+
+    <div class="rank-box" id="rank">
+      <div class="rank-title">🏆 西咸隆基配对排行榜</div>
+      <div id="rankList"></div>
+    </div>
+
+    <div class="result" id="result">
+      <h2>🎉 游戏结束 🎉</h2>
+      <p>工号：<span id="rJob"></span></p>
+      <p>姓名：<span id="rName"></span></p>
+      <p>部门：<span id="rDept"></span></p>
+      <p>最终得分：<span id="rScore"></span></p>
+      <p>称号：<span id="rLevel" style="color:#1976d2;font-weight:bold"></span></p>
+      <button class="btn" onclick="location.reload()">再来一次</button>
+    </div>
+  </div>
+
+  <script>
+    // ====================== 【这里替换成你们部门头像】 ======================
+    const DEPT_IMAGES = [
+      "https://picsum.photos/id/1/100/100",
+      "https://picsum.photos/id/2/100/100",
+      "https://picsum.photos/id/3/100/100",
+      "https://picsum.photos/id/4/100/100",
+      "https://picsum.photos/id/5/100/100",
+      "https://picsum.photos/id/6/100/100",
+      "https://picsum.photos/id/7/100/100",
+      "https://picsum.photos/id/8/100/100"
+    ];
+    // ======================================================================
+
+    const MAX_CHANCES = 5; // 每天5次机会
+    let score = 0;
+    let gameTime = 15;
+    let timer = null;
+    let gameRunning = false;
+    let jobNum = "", userName = "", deptName = "";
+    let cards = [];
+    let firstCard = null;
+    let lockBoard = false;
+
+    let rankList = JSON.parse(localStorage.getItem("longiRank2025")) || [];
+
+    // 读取今日次数
+    function getTodayKey() {
+      const d = new Date();
+      return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    }
+
+    function getUserChances() {
+      const key = "longi_chance_" + getTodayKey();
+      return parseInt(localStorage.getItem(key)) || 0;
+    }
+
+    function addUserChance() {
+      const key = "longi_chance_" + getTodayKey();
+      const curr = getUserChances();
+      localStorage.setItem(key, curr + 1);
+    }
+
+    function updateChanceTip() {
+      const used = getUserChances();
+      const left = Math.max(0, MAX_CHANCES - used);
+      document.getElementById("chanceTip").innerText = `今日剩余次数：${left} 次`;
+    }
+
+    // 页面加载时显示次数
+    window.onload = updateChanceTip;
+
+    // 开始游戏
+    function startGame() {
+      jobNum = document.getElementById("jobNum").value.trim();
+      userName = document.getElementById("userName").value.trim();
+      deptName = document.getElementById("deptName").value.trim();
+
+      if (!jobNum || !userName || !deptName) {
+        alert("请填写完整：工号、姓名、部门！");
+        return;
+      }
+
+      const used = getUserChances();
+      if (used >= MAX_CHANCES) {
+        alert("❌ 今日游戏次数已用完，请明天再来！");
+        return;
+      }
+
+      let count = 3;
+      const cd = document.getElementById("count");
+      cd.style.display = "block";
+      cd.innerText = count;
+
+      let ct = setInterval(() => {
+        count--;
+        cd.innerText = count;
+        if (count <= 0) {
+          clearInterval(ct);
+          cd.style.display = "none";
+          runGame();
+        }
+      }, 1000);
+    }
+
+    // 初始化卡片
+    function initCards() {
+      let pairs = [...DEPT_IMAGES, ...DEPT_IMAGES];
+      pairs.sort(() => Math.random() - 0.5);
+      cards = pairs.map((src, id) => ({ id, src, flipped: false, matched: false }));
+      renderCards();
+    }
+
+    function renderCards() {
+      const grid = document.getElementById("cardGrid");
+      grid.innerHTML = "";
+      cards.forEach(card => {
+        const div = document.createElement("div");
+        div.className = "card" + (card.flipped ? " flipped" : "");
+        div.innerHTML = `
+          <div class="front">?</div>
+          <div class="back" style="background-image:url('${card.src}')"></div>
+        `;
+        div.onclick = () => flipCard(card.id);
+        grid.appendChild(div);
+      });
+    }
+
+    // 翻牌
+    function flipCard(id) {
+      if (!gameRunning || lockBoard) return;
+      const card = cards.find(c => c.id === id);
+      if (card.flipped || card.matched) return;
+
+      card.flipped = true;
+      renderCards();
+
+      if (!firstCard) {
+        firstCard = card;
+      } else {
+        lockBoard = true;
+        if (firstCard.src === card.src) {
+          firstCard.matched = true;
+          card.matched = true;
+          score++;
+          document.getElementById("score").innerText = score;
+          firstCard = null;
+          lockBoard = false;
+        } else {
+          setTimeout(() => {
+            firstCard.flipped = false;
+            card.flipped = false;
+            firstCard = null;
+            lockBoard = false;
+            renderCards();
+          }, 600);
+        }
+      }
+    }
+
+    // 游戏运行
+    function runGame() {
+      score = 0;
+      gameTime = 15;
+      gameRunning = true;
+      firstCard = null;
+      lockBoard = false;
+
+      document.getElementById("game").style.display = "block";
+      document.getElementById("score").innerText = score;
+      document.getElementById("time").innerText = gameTime;
+
+      initCards();
+
+      timer = setInterval(() => {
+        gameTime--;
+        document.getElementById("time").innerText = gameTime;
+        if (gameTime <= 0) endGame();
+      }, 1000);
+    }
+
+    // 结束
+    function endGame() {
+      clearInterval(timer);
+      gameRunning = false;
+      document.getElementById("game").style.display = "none";
+
+      // 记录次数
+      addUserChance();
+      updateChanceTip();
+
+      rankList.push({
+        job: jobNum,
+        name: userName,
+        dept: deptName,
+        score: score,
+        time: Date.now()
+      });
+
+      rankList.sort((a, b) => b.score - a.score);
+      if (rankList.length > 200) rankList = rankList.slice(0, 200);
+      localStorage.setItem("longiRank2025", JSON.stringify(rankList));
+
+      const level = getLevel(score);
+      document.getElementById("rJob").innerText = jobNum;
+      document.getElementById("rName").innerText = userName;
+      document.getElementById("rDept").innerText = deptName;
+      document.getElementById("rScore").innerText = score;
+      document.getElementById("rLevel").innerText = level;
+      document.getElementById("result").style.display = "block";
+    }
+
+    function getLevel(s) {
+      if (s >= 10) return "🌟 隆基全能达人";
+      if (s >= 7) return "🥇 金牌配对手";
+      if (s >= 4) return "🥈 优秀员工";
+      if (s >= 1) return "🥉 合格搭档";
+      return "💤 继续加油";
+    }
+
+    // 排行榜
+    function showRank() {
+      const list = document.getElementById("rankList");
+      if (rankList.length === 0) {
+        list.innerHTML = "<div style='padding:10px'>暂无成绩</div>";
+      } else {
+        let html = "";
+        rankList.slice(0, 30).forEach((item, i) => {
+          html += `
+            <div class='rank-item'>
+              <div>${i+1}. ${item.name} | ${item.dept}</div>
+              <div>工号：${item.job} | 得分：${item.score}</div>
+            </div>`;
+        });
+        list.innerHTML = html;
+      }
+      document.getElementById("rank").style.display = "block";
+    }
+  </script>
+</body>
+</html>
