@@ -45,7 +45,7 @@ input{width:90%;padding:12px;border:2px solid #1976d2;border-radius:30px;margin:
     </div>
 
     <div class="rank-wrap" id="rankWrap">
-        <div class="rank-title">🏆 排行榜</div>
+        <div class="rank-title">🏆 全公司实时排行榜</div>
         <div id="rankList"></div>
     </div>
 
@@ -65,12 +65,37 @@ let score = 0, leftTime = 15, timer = null, isRun = false;
 let firstCard = null, lock = false;
 const imgList = ["1.png","2.png","3.png","4.png","5.png","6.png","7.png","8.png"];
 
+// 免费公共云数据（稳定不卡死）
+const SHEET_KEY = "longi_flip_game_2026";
+
 // 每日次数
 function getTodayKey(){let d=new Date();return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
 function getUsed(){return Number(localStorage.getItem("play_"+getTodayKey()))||0;}
 function addUsed(){localStorage.setItem("play_"+getTodayKey(),getUsed()+1);}
 function updateChance(){document.getElementById("chanceTip").innerText="今日剩余次数："+(MAX_PLAY-getUsed())+" 次";}
 window.onload = updateChance;
+
+// 读取云端数据
+async function getList(){
+  try{
+    let r = await fetch("https://api.npoint.io/82e6892722a24a5b9aa7");
+    let j = await r.json();
+    return j.list || [];
+  }catch(e){
+    return [];
+  }
+}
+
+// 保存云端数据
+async function saveList(list){
+  try{
+    await fetch("https://api.npoint.io/82e6892722a24a5b9aa7",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({list})
+    });
+  }catch(e){}
+}
 
 // 开始游戏
 function startGame(){
@@ -129,20 +154,19 @@ function clickCard(dom,src){
     }
 }
 
-// 游戏结束
-function gameOver(){
+// 游戏结束 上传全公司排行榜
+async function gameOver(){
     clearInterval(timer);isRun=false;addUsed();updateChance();
     document.getElementById("gameBox").style.display="none";
     let job=document.getElementById("jobNum").value;
     let name=document.getElementById("userName").value;
     let dept=document.getElementById("deptName").value;
 
-    // 本地保存成绩
-    let list = JSON.parse(localStorage.getItem("localRank")) || [];
+    let list = await getList();
     list.push({job,name,dept,score});
     list.sort((a,b)=>b.score-a.score);
     if(list.length>200) list=list.slice(0,200);
-    localStorage.setItem("localRank",JSON.stringify(list));
+    await saveList(list);
 
     document.getElementById("resJob").innerText=job;
     document.getElementById("resName").innerText=name;
@@ -151,10 +175,9 @@ function gameOver(){
     document.getElementById("resPop").style.display="block";
 }
 
-// 查看排行榜（绝对能点！）
-function showRank(){
-    let wrap = document.getElementById("rankWrap");
-    let list = JSON.parse(localStorage.getItem("localRank")) || [];
+// 查看全公司实时排行榜
+async function showRank(){
+    let list = await getList();
     let html="";
     if(list.length===0){
         html="<div class='rank-item'>暂无游玩记录</div>";
@@ -164,7 +187,7 @@ function showRank(){
         });
     }
     document.getElementById("rankList").innerHTML=html;
-    wrap.style.display="block";
+    document.getElementById("rankWrap").style.display="block";
 }
 </script>
 </body>
