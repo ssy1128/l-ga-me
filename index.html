@@ -34,7 +34,7 @@ input{width:90%;padding:12px;border:2px solid #1976d2;border-radius:30px;margin:
 
     <div>
         <button class="btn" onclick="startGame()">开始游戏</button>
-        <button class="btn" onclick="showRank()">查看实时排行榜</button>
+        <button class="btn" onclick="showRank()">查看排行榜</button>
     </div>
 
     <div class="countdown" id="cdText">3</div>
@@ -45,7 +45,7 @@ input{width:90%;padding:12px;border:2px solid #1976d2;border-radius:30px;margin:
     </div>
 
     <div class="rank-wrap" id="rankWrap">
-        <div class="rank-title">🏆 全员互通·实时排行榜</div>
+        <div class="rank-title">🏆 排行榜</div>
         <div id="rankList"></div>
     </div>
 
@@ -65,26 +65,12 @@ let score = 0, leftTime = 15, timer = null, isRun = false;
 let firstCard = null, lock = false;
 const imgList = ["1.png","2.png","3.png","4.png","5.png","6.png","7.png","8.png"];
 
-// 云端公共储存key（固定统一数据库）
-const API_KEY = "longi_game_rank_2026";
-
 // 每日次数
 function getTodayKey(){let d=new Date();return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;}
 function getUsed(){return Number(localStorage.getItem("play_"+getTodayKey()))||0;}
 function addUsed(){localStorage.setItem("play_"+getTodayKey(),getUsed()+1);}
 function updateChance(){document.getElementById("chanceTip").innerText="今日剩余次数："+(MAX_PLAY-getUsed())+" 次";}
 window.onload = updateChance;
-
-// 云端读取排行榜
-async function getCloudRank(){
-  let res = await fetch("https://api.oioweb.cn/api/kv/get?key="+API_KEY);
-  let json = await res.json();
-  return json.data ? JSON.parse(json.data) : [];
-}
-// 云端保存排行榜
-async function saveCloudRank(list){
-  await fetch("httpsapi.oioweb.cn/api/kv/set?key="+API_KEY+"&value="+encodeURIComponent(JSON.stringify(list)));
-}
 
 // 开始游戏
 function startGame(){
@@ -143,19 +129,20 @@ function clickCard(dom,src){
     }
 }
 
-// 游戏结束 上传云端
-async function gameOver(){
+// 游戏结束
+function gameOver(){
     clearInterval(timer);isRun=false;addUsed();updateChance();
     document.getElementById("gameBox").style.display="none";
     let job=document.getElementById("jobNum").value;
     let name=document.getElementById("userName").value;
     let dept=document.getElementById("deptName").value;
 
-    let rankList = await getCloudRank();
-    rankList.push({job,name,dept,score});
-    rankList.sort((a,b)=>b.score-a.score);
-    if(rankList.length>300)rankList=rankList.slice(0,300);
-    await saveCloudRank(rankList);
+    // 本地保存成绩
+    let list = JSON.parse(localStorage.getItem("localRank")) || [];
+    list.push({job,name,dept,score});
+    list.sort((a,b)=>b.score-a.score);
+    if(list.length>200) list=list.slice(0,200);
+    localStorage.setItem("localRank",JSON.stringify(list));
 
     document.getElementById("resJob").innerText=job;
     document.getElementById("resName").innerText=name;
@@ -164,18 +151,20 @@ async function gameOver(){
     document.getElementById("resPop").style.display="block";
 }
 
-// 查看全员互通排行榜
-async function showRank(){
-    let list = await getCloudRank();
+// 查看排行榜（绝对能点！）
+function showRank(){
+    let wrap = document.getElementById("rankWrap");
+    let list = JSON.parse(localStorage.getItem("localRank")) || [];
     let html="";
-    if(list.length===0)html="<div class='rank-item'>暂无记录</div>";
-    else{
+    if(list.length===0){
+        html="<div class='rank-item'>暂无游玩记录</div>";
+    }else{
         list.slice(0,50).forEach((item,i)=>{
-            html += `<div class="rank-item">${i+1}. ${item.name}｜${item.dept}｜${item.score}分</div>`;
+            html += `<div class='rank-item'>${i+1}. ${item.name}｜${item.dept}｜${item.score}分</div>`;
         });
     }
     document.getElementById("rankList").innerHTML=html;
-    document.getElementById("rankWrap").style.display="block";
+    wrap.style.display="block";
 }
 </script>
 </body>
